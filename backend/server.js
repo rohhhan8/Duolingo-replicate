@@ -21,13 +21,19 @@ app.use(cors({
 app.use(express.json());
 
 // Session Config
+const isProduction = process.env.NODE_ENV === 'production';
+
 app.use(
     session({
         secret: process.env.SESSION_SECRET || 'your_secret_key_here',
         resave: false,
         saveUninitialized: false,
+        proxy: true, // Trust proxy for Render
         cookie: {
             maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+            secure: isProduction, // HTTPS only in production
+            httpOnly: true,
+            sameSite: isProduction ? 'none' : 'lax', // 'none' for cross-domain in production
         },
     })
 );
