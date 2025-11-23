@@ -46,7 +46,7 @@ function App() {
         setCurrentView('dashboard'); // Auto-switch to dashboard
       }
     } catch (error) {
-      console.error('Failed to fetch user:', error);
+      // Silent fail for user check
     }
   };
 
@@ -57,7 +57,7 @@ function App() {
         setDecks(response.data);
       }
     } catch (error) {
-      console.error('Failed to load decks:', error);
+      toast.error('Failed to load decks');
     }
   };
 
@@ -115,7 +115,7 @@ function App() {
     try {
       await deckService.updateDeckProgress(deckId, progress);
     } catch (error) {
-      console.error('Failed to save progress:', error);
+      // Silent fail for progress update
     }
   };
 
