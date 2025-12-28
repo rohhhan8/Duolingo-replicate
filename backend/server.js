@@ -93,14 +93,11 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
                     }).save();
                     done(null, user);
                 } catch (err) {
-                    console.error('Error in Google Strategy:', err);
                     done(err, null);
                 }
             }
         )
     );
-} else {
-    console.warn('⚠️ Google Client ID/Secret not found. Authentication will not work.');
 }
 
 // Initialize Google Gemini AI
@@ -114,15 +111,12 @@ const mongoUri = process.env.MONGODB_URI.includes('?')
 
 mongoose
     .connect(mongoUri)
-    .then(() => console.log('✅ MongoDB Connected'))
+    .then(() => {})
     .catch((err) => {
-        console.error('❌ MongoDB Connection Error:', err);
         process.exit(1);
     });
 
-// ============================================
-// Auth Routes
-// ============================================
+
 app.get(
     '/auth/google',
     passport.authenticate('google', {
@@ -151,9 +145,6 @@ app.get('/api/current_user', (req, res) => {
     res.send(req.user);
 });
 
-// ============================================
-// POST /api/generate - Generate or Fetch Deck
-// ============================================
 app.post('/api/generate', async (req, res) => {
     try {
         const { topic } = req.body;
@@ -190,16 +181,12 @@ app.post('/api/generate', async (req, res) => {
         });
 
         if (existingDeck) {
-            console.log(`📦 Cache HIT: Returning existing deck for "${normalizedTopic}"`);
             return res.status(200).json({
                 success: true,
                 source: 'cache',
                 data: existingDeck,
             });
         }
-
-        // Step 2: Cache MISS - Generate new deck using Gemini AI
-        console.log(`🤖 Cache MISS: Generating new deck for "${normalizedTopic}"`);
 
         const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
@@ -238,9 +225,6 @@ Output Format: Return ONLY a valid JSON object (no markdown):
         try {
             parsedData = JSON.parse(generatedText);
         } catch (parseError) {
-            console.error('❌ JSON Parse Error:', parseError);
-            console.error('Raw AI Response:', generatedText);
-
             return res.status(500).json({
                 success: false,
                 error: 'Failed to parse AI response. Please try again.',
@@ -283,17 +267,12 @@ Output Format: Return ONLY a valid JSON object (no markdown):
 
         await newDeck.save();
 
-        console.log(`✅ New deck saved for "${normalizedTopic}"`);
-
         return res.status(201).json({
             success: true,
             source: 'ai',
             data: newDeck,
         });
     } catch (error) {
-        console.error('❌ Error in /api/generate:', error);
-
-        // Handle specific error types
         if (error.name === 'ValidationError') {
             return res.status(400).json({
                 success: false,
@@ -310,9 +289,6 @@ Output Format: Return ONLY a valid JSON object (no markdown):
     }
 });
 
-// ============================================
-// GET /api/decks - Get All Decks
-// ============================================
 app.get('/api/decks', async (req, res) => {
     try {
         const decks = await Deck.find()
@@ -325,7 +301,6 @@ app.get('/api/decks', async (req, res) => {
             data: decks,
         });
     } catch (error) {
-        console.error('❌ Error in /api/decks:', error);
         return res.status(500).json({
             success: false,
             error: 'Failed to fetch decks',
@@ -334,9 +309,6 @@ app.get('/api/decks', async (req, res) => {
     }
 });
 
-// ============================================
-// DELETE /api/decks/:id - Delete a Deck
-// ============================================
 app.delete('/api/decks/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -357,15 +329,12 @@ app.delete('/api/decks/:id', async (req, res) => {
             });
         }
 
-        console.log(`🗑️ Deleted deck: ${deletedDeck.topic}`);
-
         return res.status(200).json({
             success: true,
             message: 'Deck deleted successfully',
             data: deletedDeck,
         });
     } catch (error) {
-        console.error('❌ Error in /api/decks/:id:', error);
         return res.status(500).json({
             success: false,
             error: 'Failed to delete deck',
@@ -374,9 +343,6 @@ app.delete('/api/decks/:id', async (req, res) => {
     }
 });
 
-// ============================================
-// PATCH /api/decks/:id/progress - Update Progress
-// ============================================
 app.patch('/api/decks/:id/progress', async (req, res) => {
     try {
         const { id } = req.params;
@@ -406,14 +372,10 @@ app.patch('/api/decks/:id/progress', async (req, res) => {
             data: updatedDeck,
         });
     } catch (error) {
-        console.error('❌ Error in /api/decks/:id/progress:', error);
         return res.status(500).json({ success: false, error: 'Failed to update progress' });
     }
 });
 
-// ============================================
-// Health Check Route
-// ============================================
 app.get('/api/health', (req, res) => {
     res.status(200).json({
         success: true,
@@ -422,9 +384,6 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// ============================================
-// 404 Handler
-// ============================================
 app.use((req, res) => {
     res.status(404).json({
         success: false,
@@ -432,11 +391,7 @@ app.use((req, res) => {
     });
 });
 
-// ============================================
-// Global Error Handler
-// ============================================
 app.use((err, req, res, next) => {
-    console.error('❌ Unhandled Error:', err);
     res.status(500).json({
         success: false,
         error: 'Something went wrong',
@@ -444,7 +399,4 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Start Server
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+app.listen(PORT, () => {});

@@ -7,7 +7,7 @@ const cardSchema = new mongoose.Schema(
             type: String,
             required: [true, 'Question is required'],
             trim: true,
-            minlength: [3, 'Question must be at least 3 characters long'],
+            minlength: [2, 'Question must be at least 2 characters long'],
         },
         answer: {
             type: String,
